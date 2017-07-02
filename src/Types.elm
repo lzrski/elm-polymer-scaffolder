@@ -23,8 +23,8 @@ type Action
 -}
 type alias Component =
     { elements : List Element
+    , attributes : List Attribute
 
-    -- , attributes : List Attribute
     -- , events : List Event
     }
 
@@ -34,7 +34,13 @@ type Element
 
 
 type Attribute
-    = Attribute String
+    = Attribute String ValueType
+
+
+type ValueType
+    = Boolean
+    | String
+    | Number
 
 
 type Event

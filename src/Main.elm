@@ -3,6 +3,7 @@ module Main exposing (main)
 import Html
 import Http
 import Json.Decode as Decode exposing (value)
+import Set
 import Types exposing (..)
 import View exposing (view)
 
@@ -42,7 +43,9 @@ fetchData component =
 
 decodeComponent : Decode.Value -> Component
 decodeComponent json =
-    { elements = decodeElements json }
+    { elements = decodeElements json
+    , attributes = decodeAttributes json
+    }
 
 
 decodeElements : Decode.Value -> List Element
@@ -61,12 +64,71 @@ decodeElements json =
 
 decodeElement : Decode.Value -> Element
 decodeElement json =
-    case Decode.decodeValue (Decode.at [ "tagname" ] (Decode.string)) json of
-        Ok tagname ->
-            Element tagname
+    let
+        elementDecoder =
+            Decode.at [ "tagname" ] Decode.string
+    in
+        case Decode.decodeValue elementDecoder json of
+            Ok tagname ->
+                Element tagname
 
-        Err message ->
-            Debug.crash message
+            Err message ->
+                Debug.crash message
+
+
+decodeAttributes : Decode.Value -> List Attribute
+decodeAttributes json =
+    let
+        -- DRY: elementsDecoder is the same here as in decodeElements
+        --      it will be the same for decodeEvents as well
+        elementsDecoder =
+            Decode.at [ "analysis", "elements" ] (Decode.list Decode.value)
+    in
+        case Decode.decodeValue elementsDecoder json of
+            Ok values ->
+                List.map decodeAttributesFromElement values
+                    |> List.concat
+
+            {- TODO: How to make list unique?
+
+               This doesn't work as Attribute is not comparable
+
+               |> Set.fromList
+               |> Set.toList
+               -
+            -}
+            Err message ->
+                Debug.crash message
+
+
+decodeAttributesFromElement : Decode.Value -> List Attribute
+decodeAttributesFromElement json =
+    let
+        attributesDecoder =
+            Decode.at [ "attributes" ] (Decode.list Decode.value)
+    in
+        case Decode.decodeValue attributesDecoder json of
+            Ok values ->
+                List.map decodeAttribute values
+
+            Err message ->
+                Debug.crash message
+
+
+decodeAttribute : Decode.Value -> Attribute
+decodeAttribute json =
+    let
+        attributeDecoder =
+            Decode.map2 Attribute
+                (Decode.at [ "name" ] Decode.string)
+                (Decode.at [ "type" ] (Decode.succeed String))
+    in
+        case Decode.decodeValue attributeDecoder json of
+            Ok attribute ->
+                attribute
+
+            Err message ->
+                Debug.crash message
 
 
 update : Action -> Model -> ( Model, Cmd Action )
