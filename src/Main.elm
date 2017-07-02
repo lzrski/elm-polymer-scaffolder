@@ -22,7 +22,7 @@ init =
     { component = Nothing
     , error = Nothing
     }
-        ! [ fetchData "paper-icon-button" ]
+        ! [ fetchData "app-layout" ]
 
 
 fetchData : String -> Cmd Action
@@ -52,11 +52,21 @@ decodeElements json =
             Decode.at [ "analysis", "elements" ] (Decode.list Decode.value)
     in
         case Decode.decodeValue elementsDecoder json of
-            Ok value ->
-                List.map Element value
+            Ok values ->
+                List.map decodeElement values
 
             Err message ->
                 Debug.crash message
+
+
+decodeElement : Decode.Value -> Element
+decodeElement json =
+    case Decode.decodeValue (Decode.at [ "tagname" ] (Decode.string)) json of
+        Ok tagname ->
+            Element tagname
+
+        Err message ->
+            Debug.crash message
 
 
 update : Action -> Model -> ( Model, Cmd Action )

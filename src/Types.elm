@@ -30,7 +30,7 @@ type alias Component =
 
 
 type Element
-    = Element Decode.Value
+    = Element String
 
 
 type Attribute
