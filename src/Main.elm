@@ -1,10 +1,10 @@
 module Main exposing (main)
 
-import Types exposing (..)
-import View exposing (view)
+import Html
 import Http
 import Json.Decode as Decode exposing (value)
-import Html
+import Types exposing (..)
+import View exposing (view)
 
 
 main : Program Never Model Action
@@ -25,6 +25,7 @@ init =
         ! [ fetchData "paper-icon-button" ]
 
 
+fetchData : String -> Cmd Action
 fetchData component =
     let
         url =
@@ -39,6 +40,25 @@ fetchData component =
             |> Http.send DataFetched
 
 
+decodeComponent : Decode.Value -> Component
+decodeComponent json =
+    { elements = decodeElements json }
+
+
+decodeElements : Decode.Value -> List Element
+decodeElements json =
+    let
+        elementsDecoder =
+            Decode.at [ "analysis", "elements" ] (Decode.list Decode.value)
+    in
+        case Decode.decodeValue elementsDecoder json of
+            Ok value ->
+                List.map Element value
+
+            Err message ->
+                Debug.crash message
+
+
 update : Action -> Model -> ( Model, Cmd Action )
 update action state =
     case action of
@@ -50,7 +70,7 @@ update action state =
                 _ =
                     Debug.log "Data fetch OK"
             in
-                { state | component = Just json } ! []
+                { state | component = Just (decodeComponent json) } ! []
 
         DataFetched (Err message) ->
             let

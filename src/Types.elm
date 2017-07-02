@@ -9,7 +9,7 @@ import Json.Decode as Decode
 
 
 type alias Model =
-    { component : Maybe Decode.Value -- Component
+    { component : Maybe Component
     , error : Maybe Http.Error
     }
 
@@ -23,13 +23,14 @@ type Action
 -}
 type alias Component =
     { elements : List Element
-    , attributes : List Attribute
-    , events : List Event
+
+    -- , attributes : List Attribute
+    -- , events : List Event
     }
 
 
 type Element
-    = Element String
+    = Element Decode.Value
 
 
 type Attribute
