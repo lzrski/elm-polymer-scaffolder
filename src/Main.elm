@@ -1,12 +1,13 @@
 module Main exposing (main)
 
-import Html exposing (Html, div, pre, text)
-import Html.Attributes exposing (style)
+import Types exposing (..)
+import View exposing (view)
 import Http
 import Json.Decode as Decode exposing (value)
+import Html
 
 
-main : Program Never Model Msg
+main : Program Never Model Action
 main =
     Html.program
         { init = init
@@ -16,24 +17,9 @@ main =
         }
 
 
-type alias Model =
-    { analysis : Maybe Analysis
-    , error : Maybe Http.Error
-    }
-
-
-type alias Analysis =
-    Decode.Value
-
-
-type Msg
-    = NoOp
-    | DataFetched (Result Http.Error Analysis)
-
-
-init : ( Model, Cmd Msg )
+init : ( Model, Cmd Action )
 init =
-    { analysis = Nothing
+    { component = Nothing
     , error = Nothing
     }
         ! [ fetchData "paper-icon-button" ]
@@ -47,24 +33,24 @@ fetchData component =
                 ++ "?use_analyzer_data"
 
         _ =
-            Debug.log "Getting analysis" url
+            Debug.log "Fetching analysis" url
     in
         Http.get url Decode.value
             |> Http.send DataFetched
 
 
-update : Msg -> Model -> ( Model, Cmd Msg )
-update msg state =
-    case msg of
+update : Action -> Model -> ( Model, Cmd Action )
+update action state =
+    case action of
         NoOp ->
             state ! []
 
-        DataFetched (Ok value) ->
+        DataFetched (Ok json) ->
             let
                 _ =
-                    Debug.log "Data fetch OK" value
+                    Debug.log "Data fetch OK"
             in
-                { state | analysis = Just value } ! []
+                { state | component = Just json } ! []
 
         DataFetched (Err message) ->
             let
@@ -74,41 +60,6 @@ update msg state =
                 { state | error = Just message } ! []
 
 
-subscriptions : Model -> Sub Msg
+subscriptions : Model -> Sub Action
 subscriptions state =
     Sub.none
-
-
-
--- VIEW
-
-
-view : Model -> Html Msg
-view model =
-    div []
-        [ errorBox model.error
-        , codeBox model.analysis
-        ]
-
-
-codeBox analysis =
-    case analysis of
-        Nothing ->
-            pre [] [ text "Loading analyzer data..." ]
-
-        Just data ->
-            div [] [ text (toString data) ]
-
-
-errorBox error =
-    case error of
-        Nothing ->
-            div [] []
-
-        Just error ->
-            pre
-                [ style
-                    [ ( "background", "red" )
-                    ]
-                ]
-                [ text (toString error) ]
