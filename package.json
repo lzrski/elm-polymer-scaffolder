@@ -1,0 +1,16 @@
+{
+  "name": "elm-scaffolder",
+  "version": "1.0.0",
+  "description": "Scaffold Elm code from webcomponents.org API",
+  "main": "index.js",
+  "scripts": {
+    "develop": "scripts/develop",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Tadeusz Lazurski (https://www.lazurski.pl/)",
+  "license": "BSD-3-Clause",
+  "devDependencies": {
+    "elm": "^0.18.0",
+    "elm-live": "^2.7.4"
+  }
+}

@@ -1,0 +1,8 @@
+#! /usr/bin/env bash
+
+set -euo pipefail
+
+mkdir -p built/
+pushd built/
+ln -sf ../assets/* .
+popd

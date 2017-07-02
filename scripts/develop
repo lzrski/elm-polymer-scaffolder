@@ -1,0 +1,16 @@
+#! /usr/bin/env bash
+
+set -euo pipefail
+
+scripts/clean
+scripts/link-assets
+
+elm-live \
+  --path-to-elm-make"=./node_modules/.bin/elm-make" \
+  --host="0.0.0.0" \
+  --dir="./built/" \
+  --open \
+  --pushstate \
+  --output "./built/Main.js" \
+  --debug \
+  src/Main.elm
